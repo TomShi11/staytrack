@@ -2,19 +2,15 @@ name: Keep Supabase Alive
 
 on:
   schedule:
-    # 这里的语法是 Cron 表达式
-    # "0 0 */2 * *" 代表：每 2 天的 UTC 时间 00:00 运行一次
-    # 这样可以确保间隔小于 7 天，防止数据库暂停
-    - cron: '0 0 */2 * *'
-  workflow_dispatch: # 允许你手动点击按钮运行（方便测试）
+    # 每天 UTC 时间 00:00 运行一次 (北京时间早上 8:00)
+    - cron: '0 0 * * *'
+  workflow_dispatch: # 允许手动点击按钮运行
 
 jobs:
   ping-database:
     runs-on: ubuntu-latest
     steps:
       - name: Ping Supabase
-        # 使用 curl 命令发送一个简单的 GET 请求读取数据
-        # 这会被 Supabase 视为一次 API 调用，从而重置暂停倒计时
         run: |
           curl -X GET '${{ secrets.SUPABASE_URL }}/rest/v1/study_logs?select=*&limit=1' \
           -H "apikey: ${{ secrets.SUPABASE_KEY }}" \
