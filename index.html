@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stay Check</title>
-    <!-- 新增：愤怒的 Emoji 图标 -->
+    <!-- 网站图标：生气的表情 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>😡</text></svg>">
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     
     <style>
         :root {
-            /* 极简清爽风格 */
             --bg: #f5f5f7;
             --card-bg: #ffffff;
             --text-primary: #1d1d1f;
@@ -21,8 +21,6 @@
             
             --blue: #0071e3;
             --red: #ff3b30;
-            --green: #34c759;
-            
             --radius: 18px;
             --shadow: 0 4px 12px rgba(0,0,0,0.04);
         }
@@ -46,17 +44,8 @@
         header { text-align: center; margin-bottom: 30px; position: relative; }
         h1 { font-size: 20px; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.5px; }
         .quote { font-family: "Songti SC", serif; font-size: 14px; color: var(--text-secondary); line-height: 1.5; }
-        
-        /* 身份标签 (仅登录显示) */
-        .identity-badge {
-            position: absolute; top: -20px; right: 0;
-            font-size: 10px; background: #e5e5ea; color: #666;
-            padding: 4px 8px; border-radius: 12px; font-weight: 600;
-            opacity: 0; transition: 0.3s;
-        }
-        .identity-badge.show { opacity: 1; }
 
-        /* 核心通知条 */
+        /* 核心通知条 (AI 拼多多文案) */
         .notify-capsule {
             background: #fff; border: 1px solid rgba(0,0,0,0.05);
             padding: 10px 16px; border-radius: 99px;
@@ -107,7 +96,7 @@
         
         .btn-me { background: #e8f2ff; color: var(--blue); }
         .btn-friend { background: #fff0f0; color: var(--red); }
-        .btn-icon { font-size: 24px; font-weight: 400; } /* 统一加号大小 */
+        .btn-icon { font-size: 24px; } 
         .btn-sub { font-size: 11px; opacity: 0.6; font-weight: 400; }
 
         /* 撤回按钮 */
@@ -118,32 +107,37 @@
             transition: 0.2s; opacity: 0.6; border: none; background: transparent; width: 100%;
         }
         .undo-btn:hover { opacity: 1; background: rgba(0,0,0,0.03); }
-        .undo-btn i { font-size: 12px; }
 
-        /* 禁用/锁定状态 */
-        .locked { opacity: 0.4; filter: grayscale(1); cursor: pointer !important; /* 允许点击以触发切换账号 */ }
+        /* 锁定状态 (变灰) */
+        .locked { 
+            opacity: 0.3 !important; 
+            filter: grayscale(1); 
+            cursor: not-allowed !important; 
+            pointer-events: none; 
+            background: #f0f0f0 !important;
+            color: #ccc !important;
+        }
 
-        /* 登录弹窗 (模态框) */
+        /* 登录弹窗 */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.4); backdrop-filter: blur(5px);
-            z-index: 2000; display: none; align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.3s;
+            background: rgba(255,255,255,0.98); 
+            z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.3s;
         }
-        .modal-overlay.show { opacity: 1; }
-        .modal-box {
-            background: #fff; padding: 24px; border-radius: 20px; width: 85%; max-width: 320px;
-            text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-            transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .modal-overlay.show .modal-box { transform: scale(1); }
+        .modal-box { width: 85%; max-width: 320px; text-align: center; }
         .passcode-dots {
             border: 1px solid var(--border); background: #f5f5f7;
-            padding: 12px; border-radius: 12px; font-size: 24px; text-align: center;
-            width: 100%; letter-spacing: 8px; margin: 20px 0; outline: none;
+            padding: 14px; border-radius: 12px; font-size: 24px; text-align: center;
+            width: 100%; letter-spacing: 8px; margin: 24px 0; outline: none;
             transition: 0.2s; -webkit-text-security: disc;
         }
         .passcode-dots:focus { border-color: var(--text-primary); background: #fff; }
+        
+        .guest-link {
+            margin-top: 20px; font-size: 13px; color: #888; text-decoration: underline; 
+            cursor: pointer; background: none; border: none;
+        }
 
         /* AI 建议 */
         .ai-section { text-align: center; }
@@ -152,8 +146,6 @@
             font-size: 13px; cursor: pointer; padding: 10px;
             display: inline-flex; align-items: center; gap: 6px; transition: 0.2s;
         }
-        .text-btn:hover { color: var(--text-primary); }
-        
         .ai-result { 
             margin-top: 16px; font-size: 13px; color: var(--text-primary); 
             line-height: 1.6; text-align: left; background: #fff;
@@ -172,22 +164,34 @@
 </head>
 <body>
 
+    <!-- 登录遮罩 -->
+    <div class="modal-overlay" id="login-modal">
+        <div class="modal-box">
+            <h2 style="margin-bottom: 8px;">身份核验</h2>
+            <p style="font-size: 13px; color: #888;">输入口令以同步数据</p>
+            <input type="number" id="modal-passcode" class="passcode-dots" placeholder="●●●●" maxlength="4" onkeyup="if(event.key==='Enter') verifyPasscode()">
+            <button class="action-btn" style="background:#111; color:#fff; padding:14px; margin-top:10px; width:100%;" onclick="verifyPasscode()">
+                进入系统
+            </button>
+            <button class="guest-link" onclick="enterAsGuest()">我是访客，随便看看 &rarr;</button>
+        </div>
+    </div>
+
     <div class="container">
         <header>
             <h1>Stay Check</h1>
             <div class="quote" id="daily-quote">Loading...</div>
-            <div id="identity-tag" class="identity-badge"></div>
         </header>
 
         <!-- AI 广播条 -->
         <div class="notify-capsule" id="ai-notify" style="display:none">
             <i class="bi bi-megaphone-fill notify-icon"></i>
-            <span class="notify-text" id="ai-notify-text">正在分析局势...</span>
+            <span class="notify-text" id="ai-notify-text">分析中...</span>
         </div>
 
+        <!-- 核心看板 -->
         <div class="card">
-            <div class="level-badge" id="level-badge">Loading...</div>
-            
+            <div class="level-badge" id="level-badge">Calculating...</div>
             <div class="progress-header">
                 <span>同步率</span>
                 <span>时差 <span id="gap-val">0</span>h</span>
@@ -209,30 +213,26 @@
             </div>
         </div>
 
-        <!-- 核心操作区 -->
+        <!-- 操作按钮 (统一使用 Plus 图标) -->
         <div class="action-area">
-            <!-- Tom 的一列 -->
             <div class="action-col">
-                <button class="action-btn btn-me" id="btn-me" onclick="handleAction('Me', 'add')">
-                    <!-- 统一视觉符号：加号 -->
+                <button class="action-btn btn-me" id="btn-me" onclick="addLog('Me', 4)">
                     <i class="bi bi-plus-lg btn-icon"></i>
-                    +4h
+                    打卡 +4h
                     <span class="btn-sub">正常学习</span>
                 </button>
-                <button class="undo-btn" id="undo-me" onclick="handleAction('Me', 'undo')">
+                <button class="undo-btn" id="undo-me" onclick="undoLog('Me')">
                     <i class="bi bi-arrow-counterclockwise"></i> 撤回上次
                 </button>
             </div>
 
-            <!-- 若叶睦 的一列 -->
             <div class="action-col">
-                <button class="action-btn btn-friend" id="btn-friend" onclick="handleAction('Friend', 'add')">
-                    <!-- 统一视觉符号：加号 -->
+                <button class="action-btn btn-friend" id="btn-friend" onclick="addLog('Friend', 18)">
                     <i class="bi bi-plus-lg btn-icon"></i>
-                    +18h
+                    打卡 +18h
                     <span class="btn-sub">超级内卷</span>
                 </button>
-                <button class="undo-btn" id="undo-friend" onclick="handleAction('Friend', 'undo')">
+                <button class="undo-btn" id="undo-friend" onclick="undoLog('Friend')">
                     <i class="bi bi-arrow-counterclockwise"></i> 撤回上次
                 </button>
             </div>
@@ -246,18 +246,7 @@
         </div>
     </div>
 
-    <!-- 登录模态框 -->
-    <div class="modal-overlay" id="login-modal">
-        <div class="modal-box">
-            <h3 style="margin-bottom: 10px;">身份验证</h3>
-            <p style="font-size: 13px; color: #888;">请输入口令以修改数据</p>
-            <input type="number" id="modal-passcode" class="passcode-dots" placeholder="●●●●" maxlength="4" onkeyup="if(event.key==='Enter') verifyPasscode()">
-            <button class="action-btn" style="background:#111; color:#fff; padding:12px; margin-top:10px;" onclick="verifyPasscode()">确认</button>
-            <button class="undo-btn" style="margin-top:16px; opacity: 0.5;" onclick="closeModal()">取消</button>
-        </div>
-    </div>
-
-    <div class="toast" id="toast">提示</div>
+    <div class="toast" id="toast">已更新</div>
 
     <script>
         const CONFIG = {
@@ -271,280 +260,134 @@
         const sb = supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey);
         const BASE_ME = 10;
         const BASE_FRIEND = 72;
+        const ACCOUNTS = { '7905': 'Me', '1036': 'Friend' };
         
-        // 账户与口令
-        const ACCOUNTS = {
-            '7905': 'Me',      // Tom
-            '1036': 'Friend'   // 若叶睦
-        };
-
         const QUOTES = [
             "独学而无友，则孤陋而寡闻。——《礼记》",
             "益者三友，友直、友谅、友多闻。——《论语》",
-            "人生得一知己足矣。——鲁迅",
-            "友谊是灵魂的结合。——伏尔泰"
+            "人生得一知己足矣。——鲁迅"
         ];
 
-        // 状态
-        let currentMe = 0;
-        let currentFriend = 0;
-        let currentUser = null; // null = 访客, 'Me', 'Friend'
-        let pendingAction = null; // 暂存登录前想要执行的操作 {role, type}
+        let currentMe = 0, currentFriend = 0, currentUser = null;
 
-        // --- 初始化 ---
         window.onload = () => {
-            // 随机名言
             document.getElementById('daily-quote').innerText = QUOTES[Math.floor(Math.random() * QUOTES.length)];
-            // 加载数据 (访客模式直接加载)
             initData();
         };
 
-        // --- 数据加载 ---
-        async function initData() {
-            const { data, error } = await sb.from('study_logs').select('*');
-            if (error) { console.error(error); return; }
-
-            let addMe = 0, addFriend = 0;
-            data.forEach(log => {
-                if(log.person === 'Me') addMe += log.hours;
-                if(log.person === 'Friend') addFriend += log.hours;
-            });
-
-            currentMe = BASE_ME + addMe;
-            currentFriend = BASE_FRIEND + addFriend;
-
-            renderUI();
-            
-            // 延迟生成文案
-            setTimeout(() => generatePddCopy(Math.abs(currentFriend - currentMe)), 800);
-        }
-
-        function renderUI() {
-            document.getElementById('stat-me').innerText = currentMe;
-            document.getElementById('stat-friend').innerText = currentFriend;
-            
-            const gap = Math.abs(currentFriend - currentMe);
-            document.getElementById('gap-val').innerText = gap;
-
-            let progress = Math.max(0, 100 - gap); 
-            const fill = document.getElementById('progress-fill');
-            const badge = document.getElementById('level-badge');
-
-            fill.style.width = `${progress}%`;
-
-            if (gap <= 20) {
-                badge.innerText = "🌟 灵魂伴侣";
-                badge.style.color = "#34c759"; fill.style.background = "#34c759";
-            } else if (gap <= 50) {
-                badge.innerText = "🤝 普通朋友";
-                badge.style.color = "#ff9500"; fill.style.background = "#ff9500";
-            } else {
-                badge.innerText = "💔 形同陌路";
-                badge.style.color = "#ff3b30"; fill.style.background = "#ff3b30";
-            }
-
-            // 更新身份标签
-            const idTag = document.getElementById('identity-tag');
-            if (currentUser === 'Me') {
-                idTag.innerText = "Tom";
-                idTag.classList.add('show');
-            } else if (currentUser === 'Friend') {
-                idTag.innerText = "若叶睦";
-                idTag.classList.add('show');
-            } else {
-                // 访客模式不显示标签，移除 class
-                idTag.classList.remove('show');
-            }
-
-            // 更新按钮锁定状态
-            updateButtonState();
-        }
-
-        function updateButtonState() {
-            const btnMe = document.getElementById('btn-me');
-            const btnFriend = document.getElementById('btn-friend');
-            const undoMe = document.getElementById('undo-me');
-            const undoFriend = document.getElementById('undo-friend');
-
-            // 先重置
-            btnMe.classList.remove('locked');
-            btnFriend.classList.remove('locked');
-            undoMe.style.visibility = 'visible';
-            undoFriend.style.visibility = 'visible';
-
-            if (currentUser === 'Me') {
-                btnFriend.classList.add('locked');
-                undoFriend.style.visibility = 'hidden'; // 只能撤回自己的
-            } else if (currentUser === 'Friend') {
-                btnMe.classList.add('locked');
-                undoMe.style.visibility = 'hidden';
-            } else {
-                // 访客模式：按钮都亮着，但点击会弹登录框
-            }
-        }
-
-        // --- 交互逻辑 ---
-        function handleAction(role, type) {
-            // 如果未登录，弹出登录框
-            if (!currentUser) {
-                pendingAction = { role, type };
-                openModal();
-                return;
-            }
-
-            // 如果已登录但身份不符
-            if (currentUser !== role) {
-                if (confirm(`你当前登录的是 ${currentUser === 'Me' ? 'Tom' : '若叶睦'}，确定要切换账号来操作对方的数据吗？`)) {
-                    pendingAction = { role, type };
-                    currentUser = null; // 登出
-                    openModal(); // 重新登录
-                }
-                return;
-            }
-
-            // 身份验证通过，执行操作
-            if (type === 'add') {
-                const hours = role === 'Me' ? 4 : 18;
-                addLog(role, hours);
-            } else if (type === 'undo') {
-                undoLog(role);
-            }
-        }
-
-        // --- 数据库操作 ---
-        async function addLog(person, hours) {
-            const { error } = await sb.from('study_logs').insert({ person, hours });
-            if(!error) {
-                await initData();
-                showToast(`打卡成功 +${hours}h`);
-            } else {
-                showToast("提交失败");
-            }
-        }
-
-        async function undoLog(person) {
-            // 1. 查找该用户最新的一条记录
-            const { data, error } = await sb
-                .from('study_logs')
-                .select('id')
-                .eq('person', person)
-                .order('created_at', { ascending: false })
-                .limit(1);
-
-            if (data && data.length > 0) {
-                const lastId = data[0].id;
-                // 2. 删除它
-                const { error: delError } = await sb
-                    .from('study_logs')
-                    .delete()
-                    .eq('id', lastId);
-                
-                if (!delError) {
-                    await initData();
-                    showToast("已撤回最后一次打卡");
-                } else {
-                    showToast("撤回失败");
-                }
-            } else {
-                showToast("没有可撤回的记录");
-            }
-        }
-
-        // --- 登录模态框控制 ---
-        function openModal() {
-            const modal = document.getElementById('login-modal');
-            modal.style.display = 'flex';
-            setTimeout(() => modal.classList.add('show'), 10);
-            document.getElementById('modal-passcode').value = '';
-            document.getElementById('modal-passcode').focus();
-        }
-
-        function closeModal() {
-            const modal = document.getElementById('login-modal');
-            modal.classList.remove('show');
-            setTimeout(() => modal.style.display = 'none', 300);
-            pendingAction = null;
-        }
-
+        // --- 验证逻辑 ---
         function verifyPasscode() {
             const input = document.getElementById('modal-passcode').value;
             const role = ACCOUNTS[input];
-
             if (role) {
-                // 校验通过
-                if (pendingAction && pendingAction.role !== role) {
-                    alert(`口令正确，但这是 ${role === 'Me' ? 'Tom' : '若叶睦'} 的口令，无法操作对方的数据！`);
-                    return;
-                }
-
                 currentUser = role;
                 closeModal();
-                renderUI(); // 更新界面状态（锁定对方按钮）
-                showToast(`欢迎回来，${role === 'Me' ? 'Tom' : '若叶睦'}`);
-
-                // 如果有待执行的操作，自动执行
-                if (pendingAction) {
-                    if (pendingAction.type === 'add') {
-                        const hours = role === 'Me' ? 4 : 18;
-                        addLog(role, hours);
-                    } else if (pendingAction.type === 'undo') {
-                        undoLog(role);
-                    }
-                    pendingAction = null;
-                }
+                updateUIState();
+                showToast(`欢迎，${role === 'Me' ? 'Tom' : '若叶睦'}`);
             } else {
                 alert("口令错误");
                 document.getElementById('modal-passcode').value = '';
             }
         }
 
-        // --- AI 功能 ---
+        function enterAsGuest() {
+            currentUser = 'Guest';
+            closeModal();
+            updateUIState();
+            showToast("进入访客模式");
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('login-modal');
+            modal.style.opacity = '0';
+            setTimeout(() => modal.style.display = 'none', 300);
+        }
+
+        function updateUIState() {
+            const btns = [document.getElementById('btn-me'), document.getElementById('btn-friend'), document.getElementById('undo-me'), document.getElementById('undo-friend')];
+            btns.forEach(b => b.classList.add('locked'));
+
+            if (currentUser === 'Me') {
+                document.getElementById('btn-me').classList.remove('locked');
+                document.getElementById('undo-me').classList.remove('locked');
+            } else if (currentUser === 'Friend') {
+                document.getElementById('btn-friend').classList.remove('locked');
+                document.getElementById('undo-friend').classList.remove('locked');
+            }
+        }
+
+        // --- 数据逻辑 ---
+        async function initData() {
+            const { data } = await sb.from('study_logs').select('*');
+            let addMe = 0, addFriend = 0;
+            if (data) {
+                data.forEach(log => {
+                    if(log.person === 'Me') addMe += log.hours;
+                    if(log.person === 'Friend') addFriend += log.hours;
+                });
+            }
+            currentMe = BASE_ME + addMe;
+            currentFriend = BASE_FRIEND + addFriend;
+            renderUI();
+            setTimeout(() => generatePddCopy(Math.abs(currentFriend - currentMe)), 500);
+        }
+
+        function renderUI() {
+            document.getElementById('stat-me').innerText = currentMe;
+            document.getElementById('stat-friend').innerText = currentFriend;
+            const gap = Math.abs(currentFriend - currentMe);
+            document.getElementById('gap-val').innerText = gap;
+
+            const progress = Math.max(0, 100 - gap);
+            const fill = document.getElementById('progress-fill');
+            const badge = document.getElementById('level-badge');
+            fill.style.width = `${progress}%`;
+
+            if (gap <= 20) { badge.innerText = "🌟 灵魂伴侣"; badge.style.color = "#34c759"; fill.style.background = "#34c759"; }
+            else if (gap <= 50) { badge.innerText = "🤝 普通朋友"; badge.style.color = "#ff9500"; fill.style.background = "#ff9500"; }
+            else { badge.innerText = "💔 形同陌路"; badge.style.color = "#ff3b30"; fill.style.background = "#ff3b30"; }
+        }
+
+        async function addLog(person, hours) {
+            if (currentUser !== person) return;
+            await sb.from('study_logs').insert({ person, hours });
+            await initData();
+            showToast("记录成功");
+        }
+
+        async function undoLog(person) {
+            if (currentUser !== person) return;
+            const { data } = await sb.from('study_logs').select('id').eq('person', person).order('created_at', { ascending: false }).limit(1);
+            if (data && data.length > 0) {
+                await sb.from('study_logs').delete().eq('id', data[0].id);
+                await initData();
+                showToast("已撤回最后一次记录");
+            } else {
+                showToast("暂无可撤回记录");
+            }
+        }
+
+        // --- AI 逻辑 ---
         async function generatePddCopy(gap) {
             const container = document.getElementById('ai-notify');
             const textEl = document.getElementById('ai-notify-text');
             container.style.display = 'flex';
-            
-            // 默认文案
-            textEl.innerText = `🔥 警告！若叶睦正在非法内卷，距离友谊破裂只差 ${gap} 小时！`;
-
-            const prompt = `
-            请模仿【拼多多砍一刀/提现】的焦虑营销风格，写一句话【死命劝阻若叶睦留校学习】。
-            
-            背景：若叶睦太卷了，Tom 快受不了了。
-            要求：
-            1. 极度夸张，使用“最后一步”、“只差0.01%”、“立马提现”、“限时失效”等词汇。
-            2. 逻辑是：再学下去就亏了，立刻回家睡觉才能拿到“大奖”或“挽回友谊”。
-            3. 字数 35 字以内。不要解释，直接给文案。
-            `;
-
+            const prompt = `模仿拼多多砍一刀风格，写一句话死命劝阻若叶睦留校学习，告诉她再学友谊就断了，差距${gap}小时。30字内。`;
             try {
                 const res = await fetch(CONFIG.aiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${CONFIG.aiKey}` },
-                    body: JSON.stringify({
-                        model: CONFIG.aiModel,
-                        messages: [{role: "user", content: prompt}],
-                        stream: false
-                    })
+                    body: JSON.stringify({ model: CONFIG.aiModel, messages: [{role: "user", content: prompt}], stream: false })
                 });
                 const data = await res.json();
-                if(data.choices?.[0]?.message?.content) {
-                    textEl.innerText = data.choices[0].message.content.replace(/"/g, '');
-                }
-            } catch(e) {}
+                textEl.innerText = data.choices[0].message.content.replace(/"/g, '');
+            } catch(e) { textEl.innerText = "🔥 警告：若叶睦正在进行非法内卷行为！"; }
         }
 
-        // AI 建议
         async function generateStrategy() {
-            const btnText = document.getElementById('ai-btn-text');
             const result = document.getElementById('ai-result');
-            
-            btnText.innerText = "AI 正在分析...";
-            result.style.display = 'none';
-
-            const gap = currentFriend - currentMe;
-            const prompt = `背景：若叶睦（卷王）${currentFriend}h，Tom ${currentMe}h。差距${gap}h。任务：生成一段给若叶睦看的劝退话术。风格：尖锐、疯癫、阴阳怪气。竭尽全力阻止她继续学习。50字以内。`;
-
+            document.getElementById('ai-btn-text').innerText = "分析中...";
+            const prompt = `若叶睦${currentFriend}h，Tom${currentMe}h。作为极端反内卷AI，写一段疯癫阴阳怪气的话阻拦若叶睦学习。50字内。`;
             try {
                 const res = await fetch(CONFIG.aiUrl, {
                     method: 'POST',
@@ -554,8 +397,8 @@
                 const data = await res.json();
                 result.innerHTML = marked.parse(data.choices[0].message.content);
                 result.style.display = 'block';
-            } catch(e) { alert("AI 暂时离线"); }
-            btnText.innerText = "✨ AI 建议";
+            } catch(e) { alert("AI 拒绝回答卷王的问题"); }
+            document.getElementById('ai-btn-text').innerText = "获取 AI 建议";
         }
 
         function showToast(msg) {
