@@ -173,7 +173,7 @@
             <button class="action-btn" style="background:#111; color:#fff; padding:14px; margin-top:10px; width:100%;" onclick="verifyPasscode()">
                 进入系统
             </button>
-            <button class="guest-link" onclick="enterAsGuest()">我是访客，随便看看 &rarr;</button>
+            <button class="guest-link" onclick="enterAsGuest()">访客模式 &rarr;</button>
         </div>
     </div>
 
@@ -372,7 +372,15 @@
             const container = document.getElementById('ai-notify');
             const textEl = document.getElementById('ai-notify-text');
             container.style.display = 'flex';
-            const prompt = `模仿拼多多砍一刀风格，写一句话死命劝阻若叶睦留校学习，告诉她再学友谊就断了，差距${gap}小时。30字内。`;
+            const prompt = `
+        请模仿拼多多“提现倒计时”的焦虑风格写一句话。
+        背景：卷王“若叶睦”现在的留校时间比 Tom 多了 ${gap} 小时。
+        任务：极度夸张地【劝阻若叶睦】继续学习。
+        要求：
+        1. 使用“最后一次机会”、“友谊即将作废”、“立马回家”等词汇。
+        2. 必须针对“若叶睦”进行打压，告诉她再学下去不仅拿不到大奖，还会导致友谊账户被冻结。
+        3. 字数控制在 30 字内。
+        `;
             try {
                 const res = await fetch(CONFIG.aiUrl, {
                     method: 'POST',
